@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Mapa de Aptidão Agrícola do Estado de São Paulo com dados climáticos da NASA POWER.">
+  <title>Mapa de Aptidão Agrícola — Estado de São Paulo</title>
+  <meta name="theme-color" content="#2C2C2C">
+  <script>
+    /* Aplica o tema salvo antes da primeira pintura (evita "piscar"). Padrão: escuro. */
+    try { document.documentElement.dataset.tema = localStorage.getItem('aptidao-sp:tema') === 'claro' ? 'claro' : 'escuro'; }
+    catch (e) { document.documentElement.dataset.tema = 'escuro'; }
+  </script>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="topo">
+    <div class="marca">
+      <span class="marca-icone" aria-hidden="true">🌾</span>
+      <div>
+        <h1>Mapa de Aptidão Agrícola</h1>
+        <p>Estado de São Paulo · dados NASA POWER</p>
+      </div>
+    </div>
+    <div class="topo-controles">
+      <div class="segmentado" role="group" aria-label="Fonte dos dados climáticos">
+        <button id="btnModoReal" type="button" class="seg ativo" aria-pressed="true" title="Dados reais da NASA POWER API">NASA POWER</button>
+        <button id="btnModoSim" type="button" class="seg" aria-pressed="false" title="Dados gerados localmente, para testes rápidos">Simulação</button>
+      </div>
+      <button id="btnTema" class="btn-tema" type="button" title="Alternar tema claro/escuro" aria-label="Alternar para o tema claro">
+        <svg class="ico-sol" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        <svg class="ico-lua" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+      <label class="sr-only" for="selPolo">Atalho para polo agrícola</label>
+      <select id="selPolo" class="campo campo-topo"><option value="">Polos de SP…</option></select>
+    </div>
+  </header>
+
+  <div class="layout">
+    <main class="central">
+
+      <!-- 1 · MAPA -->
+      <section class="mapa-wrap" aria-label="Mapa do Estado de São Paulo">
+        <div id="mapa"></div>
+        <div class="mapa-topo">
+          <div class="selo-sp" role="note">
+            <span class="selo-cta"><span class="so-toque">Toque</span><span class="so-clique">Clique</span> no mapa para analisar</span>
+            <span class="selo-sub">Somente no Estado de São Paulo</span>
+          </div>
+          <div id="seloFonte" class="selo-fonte" role="status" hidden></div>
+        </div>
+        <div id="chipResultado" class="chip-resultado" hidden aria-live="polite"></div>
+
+        <div id="dicaGesto" class="dica-gesto" role="status" hidden>Use dois dedos para mover o mapa</div>
+
+        <div id="carregando" class="carregando" hidden role="status" aria-live="polite">
+          <div class="spinner" aria-hidden="true"></div>
+          <p id="carregandoTxt">Consultando…</p>
+        </div>
+
+        <div class="legenda" aria-label="Legenda de aptidão">
+          <strong>Aptidão</strong>
+          <span><i style="background:var(--apta)"></i>Apta</span>
+          <span><i style="background:var(--moderada)"></i>Moderada</span>
+          <span><i style="background:var(--inapta)"></i>Inapta</span>
+          <span class="leg-sd"><i style="background:var(--sem-dados)"></i>Sem dados</span>
+        </div>
+        <button id="btnVerSP" type="button" class="btn-flutuante" title="Enquadrar o Estado de São Paulo">⤢ Ver SP</button>
+      </section>
+
+      <!-- RESUMO RÁPIDO (celular): resultado junto ao mapa -->
+      <section id="resumoRapido" class="resumo-rapido" aria-label="Resumo do resultado" hidden>
+        <div class="rr-linha">
+          <span id="rrClasse" class="rr-classe">—</span>
+          <span id="rrCultura" class="rr-cultura"></span>
+        </div>
+        <div class="rr-local"><span id="rrLocal">—</span><span class="tag-exemplo so-exemplo">Exemplo</span></div>
+        <p class="rr-dica so-exemplo">Este é um ponto de exemplo. Toque em outro lugar do mapa para analisar.</p>
+        <p id="rrLimitante" class="rr-limitante"></p>
+        <p id="rrFonte" class="rr-fonte" hidden></p>
+        <p class="rr-aviso">Resultado indicativo. Não é laudo nem recomendação de plantio.</p>
+        <div class="rr-acoes">
+          <button id="btnRrDetalhes" type="button" class="btn btn-sec">Ver detalhes</button>
+          <button id="btnRrRelatorio" type="button" class="btn btn-sec">Relatório</button>
+        </div>
+      </section>
+
+      <!-- GRÁFICOS / RELATÓRIO -->
+      <section class="dock" aria-label="Gráficos e relatório">
+        <div class="abas" role="tablist" aria-label="Painéis de resultado">
+          <button id="tabGraficos" class="aba ativa" role="tab" aria-selected="true" aria-controls="painelGraficos" type="button">📊 Gráficos</button>
+          <button id="tabRelatorio" class="aba" role="tab" aria-selected="false" aria-controls="painelRelatorio" type="button">📋 Relatório agronômico</button>
+          <button id="btnRecolher" class="btn-recolher" type="button" aria-expanded="true" aria-controls="painelGraficos painelRelatorio" title="Recolher painel e ampliar o mapa" aria-label="Recolher painel de gráficos e relatório">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+
+        <div id="painelGraficos" class="dock-corpo graficos" role="tabpanel" aria-labelledby="tabGraficos">
+          <figure class="cartao-grafico">
+            <figcaption>Balanço hídrico mensal simplificado <small>(indicativo: precipitação total corrigida, sem chuva efetiva, e Kc único; meses fora do período analisado aparecem esmaecidos)</small></figcaption>
+            <div class="canvas-wrap"><canvas id="cvHidrico" role="img" aria-label="Gráfico de balanço hídrico mensal simplificado e indicativo: precipitação, necessidade hídrica, déficit e excedente"></canvas></div>
+          </figure>
+          <figure class="cartao-grafico">
+            <figcaption>Perfil térmico <small>(faixa verde = temperatura adequada no modelo)</small></figcaption>
+            <div class="canvas-wrap"><canvas id="cvTermico" role="img" aria-label="Gráfico do perfil térmico: temperatura média mensal e limites inferior e superior da cultura"></canvas></div>
+          </figure>
+        </div>
+
+        <div id="painelRelatorio" class="dock-corpo relatorio-corpo" role="tabpanel" aria-labelledby="tabRelatorio" hidden>
+          <div class="rel-acoes">
+            <button id="btnCopiar" type="button" class="btn btn-sec">Copiar relatório</button>
+            <button id="btnImprimir" type="button" class="btn btn-sec">Imprimir</button>
+          </div>
+          <article id="relatorio" class="relatorio" aria-live="polite"><p class="vazio">Selecione um ponto no mapa para gerar o relatório.</p></article>
+        </div>
+      </section>
+    </main>
+
+    <!-- 2 · CULTURA → DADOS → APTIDÃO → PARÂMETROS → REGIONAL -->
+    <aside class="painel" aria-label="Controles e resultados">
+
+      <section class="bloco">
+        <h2><span class="num">1</span> Cultura e período</h2>
+        <label for="selCultura">Cultura</label>
+        <select id="selCultura" class="campo"></select>
+        <div class="duas-col">
+          <div>
+            <label for="selPeriodo">Período do ciclo</label>
+            <select id="selPeriodo" class="campo"></select>
+          </div>
+          <div>
+            <label for="selAno">Base de dados</label>
+            <select id="selAno" class="campo"></select>
+          </div>
+        </div>
+      </section>
+
+      <section id="blocoAptidao" class="bloco bloco-aptidao" aria-live="polite">
+        <h2><span class="num">2</span> Resultado: aptidão no ponto</h2>
+        <div class="aptidao-topo">
+          <div id="badgeClasse" class="badge-classe">—</div>
+          <span id="indiceTxt" class="indice"></span>
+        </div>
+        <ul id="listaMotivos" class="motivos"></ul>
+        <p id="limitante" class="limitante">—</p>
+        <p class="nota-cientifica">Resultado indicativo de um modelo simplificado. Não é laudo, recomendação de plantio nem o Zoneamento Agrícola de Risco Climático (ZARC).</p>
+        <details class="limites-modelo">
+          <summary>O que este resultado não considera</summary>
+          <ul>
+            <li>Solo: características físicas e químicas.</li>
+            <li>Declividade e relevo.</li>
+            <li>Cultivares específicas.</li>
+            <li>Fases de desenvolvimento da cultura.</li>
+            <li>Distribuição das chuvas ao longo do ciclo (usa médias do período).</li>
+            <li>Eventos climáticos extremos (geada, veranico, granizo).</li>
+            <li>Variação do clima dentro da célula de dados (de ~55 a ~110 km).</li>
+            <li>Chuva efetiva: não desconta infiltração, escoamento nem água armazenada no solo.</li>
+          </ul>
+          <p>As faixas de cada cultura vêm de um modelo simplificado: algumas têm apoio parcial em documentos técnicos (como o ZARC e a Embrapa); outras, como tolerâncias, umidade e radiação, ainda são valores ilustrativos, sem validação científica.</p>
+        </details>
+      </section>
+
+      <section class="bloco">
+        <h2><span class="num">3</span> Ponto e dados climáticos</h2>
+        <div class="ponto">
+          <div>
+            <div class="ponto-nome"><span id="pontoMunicipio">—</span> <span class="tag-exemplo so-exemplo">Exemplo</span></div>
+            <div id="pontoCoords" class="ponto-sub mono">Clique dentro de SP no mapa</div>
+            <div id="pontoRegiao" class="ponto-sub"></div>
+          </div>
+        </div>
+        <form id="formCoord" class="coord-form" autocomplete="off">
+          <label class="sr-only" for="inLat">Latitude</label>
+          <input id="inLat" class="campo mono" type="text" inputmode="decimal" placeholder="Latitude (ex.: -21.1775)">
+          <label class="sr-only" for="inLon">Longitude</label>
+          <input id="inLon" class="campo mono" type="text" inputmode="decimal" placeholder="Longitude (ex.: -47.8103)">
+          <button class="btn btn-sec" type="submit">Analisar</button>
+        </form>
+        <p class="nota-peq">Em SP, latitude e longitude são negativas: pode digitar sem o sinal de menos.</p>
+
+        <div class="metricas">
+          <div class="metrica" id="metTemp"><span>Temperatura</span><strong id="valTemp">—</strong></div>
+          <div class="metrica" id="metChuva"><span>Precipitação</span><strong id="valChuva">—</strong><small id="subChuva"></small></div>
+          <div class="metrica" id="metUmid"><span>Umidade relativa</span><strong id="valUmid">—</strong></div>
+          <div class="metrica" id="metRad"><span>Radiação solar</span><strong id="valRad">—</strong></div>
+        </div>
+        <div id="fonteDados" class="fonte">—</div>
+        <p id="avisoDados" class="aviso-dados" hidden></p>
+        <p class="nota-peq">A análise usa o ponto selecionado e a média do período escolhido. Os dados reais da NASA POWER representam uma célula de grade (cerca de 55 a 110 km), não a realidade exata de uma propriedade rural.</p>
+      </section>
+
+      <details id="blocoAvancado" class="bloco bloco-avancado">
+        <summary><h2><span class="num">4</span> <span id="tituloBloco4">Parâmetros do modelo de aptidão</span> <span id="tagBloco4" class="tag-avancado">Avançado</span></h2></summary>
+
+        <div id="conteudoParametros">
+          <p class="aviso-param" id="avisoParam"></p>
+          <p class="nota-peq">Estes controles definem a faixa que a cultura exige. Eles não alteram o clima do ponto selecionado.</p>
+          <div id="sliders"></div>
+          <button id="btnRestaurar" type="button" class="btn btn-sec btn-bloco">Restaurar padrão da cultura</button>
+        </div>
+
+        <div id="conteudoClimaSim" hidden>
+          <p class="aviso-param">Modo Simulação: soma um ajuste ao clima gerado do ponto, para testar calor, frio, seca, excesso de chuva, ar seco ou pouca luz. Os parâmetros da cultura voltam ao trocar para o modo NASA POWER.</p>
+          <div class="grupo-slider">
+            <div class="grupo-topo"><label for="slAjTemp">Temperatura</label><output id="outAjTemp" class="mono">0 °C</output></div>
+            <input id="slAjTemp" type="range" min="-10" max="15" step="0.5" value="0">
+          </div>
+          <div class="grupo-slider">
+            <div class="grupo-topo"><label for="slAjChuva">Precipitação</label><output id="outAjChuva" class="mono">0%</output></div>
+            <input id="slAjChuva" type="range" min="-80" max="100" step="5" value="0">
+          </div>
+          <div class="grupo-slider">
+            <div class="grupo-topo"><label for="slAjUmid">Umidade relativa</label><output id="outAjUmid" class="mono">0 p.p.</output></div>
+            <input id="slAjUmid" type="range" min="-30" max="25" step="1" value="0">
+          </div>
+          <div class="grupo-slider">
+            <div class="grupo-topo"><label for="slAjRad">Radiação solar</label><output id="outAjRad" class="mono">0 MJ/m²/dia</output></div>
+            <input id="slAjRad" type="range" min="-8" max="6" step="0.5" value="0">
+          </div>
+          <button id="btnAjZerar" class="btn btn-sec btn-bloco" type="button">Zerar ajuste</button>
+        </div>
+      </details>
+
+      <details class="bloco bloco-regional" open>
+        <summary><h2><span class="num">5</span> Análise Regional de São Paulo <span class="tag-compl">Visão do Estado</span></h2></summary>
+        <p class="nota-peq nota-regional">Complementa a análise do ponto: classifica uma grade de pontos dentro de SP para a cultura escolhida e mostra no mapa onde ela é mais ou menos apta.</p>
+        <p class="nota-peq">Em modo NASA POWER, o aplicativo faz uma consulta por célula de 0,5° (com cache). Essa é a grade de consulta, não a resolução nativa dos dados (~0,5°×0,625° na meteorologia e ~1° na radiação). Em Simulação, as resoluções mais finas ficam disponíveis.</p>
+        <label for="selResolucao">Resolução da grade</label>
+        <select id="selResolucao" class="campo"></select>
+        <div class="grade-botoes">
+          <button id="btnGrade" type="button" class="btn btn-prim">Gerar análise regional</button>
+          <button id="btnCancelarGrade" type="button" class="btn btn-sec" hidden>Cancelar</button>
+          <button id="btnLimparGrade" type="button" class="btn btn-sec" hidden>Limpar</button>
+        </div>
+        <progress id="progGrade" value="0" max="1" hidden></progress>
+        <p id="resumoGrade" class="resumo-grade" aria-live="polite"></p>
+      </details>
+
+      <footer class="rodape">
+        <details class="limites-modelo metodologia">
+          <summary>Metodologia e informações científicas</summary>
+          <ul>
+            <li><strong>Dados:</strong> NASA POWER (comunidade <em>ag</em>): temperatura do ar a 2 m (°C), precipitação total corrigida (mm/dia), umidade relativa a 2 m (%) e radiação solar de superfície em céu real (MJ/m²/dia).</li>
+            <li><strong>Resolução:</strong> cada valor é a média de uma célula da NASA: ~0,5°×0,625° (~55×65 km) na meteorologia e ~1° (~110 km) na radiação. O aplicativo arredonda a consulta para 0,5° só para reaproveitar dados; isso não é a resolução nativa.</li>
+            <li><strong>Período:</strong> médias climatológicas mensais de longo prazo. O período exato é lido da resposta da NASA POWER e exibido na fonte dos dados e no relatório; a NASA pode atualizá-lo com o tempo.</li>
+            <li><strong>ET₀:</strong> método de Makkink (temperatura e radiação), sem calibração local demonstrada.</li>
+            <li><strong>Balanço hídrico:</strong> simplificado e informativo (não altera a classe): necessidade = ET₀ × Kc único × dias, contra a precipitação total corrigida. Não estima chuva efetiva nem desconta infiltração, escoamento ou armazenamento no solo.</li>
+            <li><strong>Classificação:</strong> cada variável é comparada com uma faixa e uma tolerância por cultura. A classe é indicativa e não reproduz o ZARC, que usa balanço hídrico por decêndio, fases críticas, solo, ciclo da cultivar e probabilidade de risco.</li>
+          </ul>
+          <p>As referências completas estão no documento de metodologia do projeto.</p>
+        </details>
+        Dados: <a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener">NASA POWER</a> ·
+        Limites: IBGE · Mapa-base: © OpenStreetMap · Município: Nominatim/OSM
+      </footer>
+    </aside>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.js" integrity="sha384-G436+Z2nlA8+PNoeRvWdxKbvOf8E/y+lYxqht2iBwNHTQDV5CJr3+AGVj8fGZi5t" crossorigin="anonymous"></script>
+
+  <script src="js/util.js"></script>
+  <script src="js/tema.js"></script>
+  <script src="js/culturas.js"></script>
+  <script src="js/agronomia.js"></script>
+  <script src="js/geo.js"></script>
+  <script src="js/limites-sp.js"></script>
+  <script src="js/polos.js"></script>
+  <script src="js/nasa-power.js"></script>
+  <script src="js/simulador.js"></script>
+  <script src="js/clima.js"></script>
+  <script src="js/municipio.js"></script>
+  <script src="js/mapa.js"></script>
+  <script src="js/graficos.js"></script>
+  <script src="js/grade-regional.js"></script>
+  <script src="js/relatorio.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,519 @@
+/* style.css — Mapa de Aptidão Agrícola (SP). Mobile-first; ≥1024px vira painel lateral + mapa + dock. */
+
+/* Paleta em dois temas. Escuro = "Agritech Dark" (padrão); claro = "Clean & Orgânico".
+   Cores semânticas (Apta/Moderada/Inapta) e dos gráficos vêm das variáveis abaixo — um só lugar para ajustar. */
+:root, :root[data-tema="escuro"] {
+  color-scheme: dark;
+  --bg: #121212;
+  --painel: #2C2C2C;
+  --painel-2: #363636;
+  --borda: #444444;
+  --hover: #404040;
+  --texto: #E0E0E0;
+  --suave: #A8A8A8;
+
+  --info: #29B6F6;
+  --info-txt: #81D4FA;
+  --info-bg: rgba(41,182,246,.12);
+  --info-borda: rgba(41,182,246,.40);
+  --num-bg: rgba(41,182,246,.18);
+  --num-txt: #29B6F6;
+
+  --apta: #4CAF50;
+  --moderada: #FFB300;
+  --inapta: #D32F2F;
+  --sem-dados: #9E9E9E;
+  --apta-txt: #66BB6A;
+  --moderada-txt: #FFB300;
+  --inapta-txt: #FF6B6B;
+  --apta-fundo: rgba(76,175,80,.18);     --apta-borda: rgba(76,175,80,.55);
+  --moderada-fundo: rgba(255,179,0,.16); --moderada-borda: rgba(255,179,0,.55);
+  --inapta-fundo: rgba(211,47,47,.24);   --inapta-borda: rgba(255,107,107,.60);
+
+  --acento: #4CAF50;
+  --botao-apta: #2E7D32;
+
+  --aviso-bg: rgba(255,179,0,.12);  --aviso-borda: rgba(255,179,0,.45);  --aviso-txt: #FFD54F;
+  --erro-bg: rgba(211,47,47,.20);   --erro-borda: rgba(255,107,107,.50); --erro-txt: #FFABAB;
+  --toast-erro-bg: #5A1F1F;  --toast-erro-borda: #8A3A3A;  --toast-erro-txt: #FFE5E5;
+  --toast-aviso-bg: #5C4300; --toast-aviso-borda: #8A6A10; --toast-aviso-txt: #FFE9A8;
+
+  --overlay-bg: rgba(44,44,44,.94);
+  --overlay-borda: #4A4A4A;
+  --overlay-texto: #E0E0E0;
+  --overlay-suave: #B0B0B0;
+  /* Mapa claro mesmo no tema escuro (legibilidade em apresentação). Para voltar ao mapa escuro: --tile-filter: invert(1) hue-rotate(180deg) brightness(.92) contrast(.88) saturate(.7); e --mascara-cor #121212. */
+  --mapa-fundo: #E8ECEF;
+  --tile-filter: none;
+  --mascara-cor: #F5F7FA;
+  --mascara-op: .72;
+  --contorno: #455A64;
+  --grade-borda: #333333;
+  --grade-sem-dados-borda: #757575;
+  --carregando-bg: rgba(18,18,18,.6);
+  --carregando-txt: #FFFFFF;
+  --spinner-trilho: rgba(255,255,255,.25);
+
+  /* Gráficos (lidos pelo JS — usar hex de 6 dígitos nas cores de barras/linhas) */
+  --g-chuva: #29B6F6;
+  --g-deficit: #D32F2F;
+  --g-excedente: #4CAF50;
+  --g-necessidade: #FFB300;
+  --g-temp: #FF9800;
+  --g-liminf: #29B6F6;
+  --g-limsup: #FF6B6B;
+  --g-faixa: rgba(76,175,80,.16);
+  --g-texto: #A8A8A8;
+  --g-grade: rgba(255,255,255,.08);
+  --g-legenda: #E0E0E0;
+
+  --raio: 12px;
+  --topo-h: 58px;
+  --fonte: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Tema claro. A área do mapa (.mapa-wrap) usa SEMPRE estas cores, inclusive no tema escuro:
+   mapa escuro some em projetor/apresentação. Para um mapa cinza no escuro, ver --tile-filter no bloco do tema escuro. */
+:root[data-tema="claro"],
+:root[data-tema="escuro"] .mapa-wrap {
+  color-scheme: light;
+  --bg: #F5F7FA;
+  --painel: #FFFFFF;
+  --painel-2: #EEF1F5;
+  --borda: #D9DEE5;
+  --hover: #E3E8EE;
+  --texto: #333333;
+  --suave: #5A6672;
+
+  --info: #0288D1;
+  --info-txt: #01579B;
+  --info-bg: #E1F2FB;
+  --info-borda: #A9D6F0;
+  --num-bg: #DCEFFA;
+  --num-txt: #01579B;
+
+  --apta: #2E7D32;
+  --moderada: #FFB300;
+  --inapta: #D32F2F;
+  --sem-dados: #9E9E9E;
+  --apta-txt: #2E7D32;
+  --moderada-txt: #7A5000;
+  --inapta-txt: #C62828;
+  --apta-fundo: rgba(46,125,50,.12);     --apta-borda: rgba(46,125,50,.50);
+  --moderada-fundo: rgba(255,179,0,.22); --moderada-borda: rgba(176,116,0,.60);
+  --inapta-fundo: rgba(211,47,47,.10);   --inapta-borda: rgba(211,47,47,.50);
+
+  --acento: #2E7D32;
+  --botao-apta: #2E7D32;
+
+  --aviso-bg: #FFF4D6;  --aviso-borda: #EBC96A;  --aviso-txt: #6B4800;
+  --erro-bg: #FDE4E4;   --erro-borda: #F0A8A8;   --erro-txt: #9B1C1C;
+  --toast-erro-bg: #B71C1C;  --toast-erro-borda: #B71C1C;  --toast-erro-txt: #FFFFFF;
+  --toast-aviso-bg: #7A5000; --toast-aviso-borda: #7A5000; --toast-aviso-txt: #FFFFFF;
+
+  --overlay-bg: rgba(255,255,255,.95);
+  --overlay-borda: #CBD2DA;
+  --overlay-texto: #333333;
+  --overlay-suave: #5A6672;
+  --mapa-fundo: #E8ECEF;
+  --tile-filter: none;
+  --mascara-cor: #F5F7FA;
+  --mascara-op: .72;
+  --contorno: #455A64;
+  --grade-borda: #333333;
+  --grade-sem-dados-borda: #757575;
+  --carregando-bg: rgba(245,247,250,.70);
+  --carregando-txt: #333333;
+  --spinner-trilho: rgba(51,51,51,.15);
+
+  --g-chuva: #0288D1;
+  --g-deficit: #D32F2F;
+  --g-excedente: #2E7D32;
+  --g-necessidade: #B26A00;
+  --g-temp: #E65100;
+  --g-liminf: #0288D1;
+  --g-limsup: #D32F2F;
+  --g-faixa: rgba(46,125,50,.12);
+  --g-texto: #5A6672;
+  --g-grade: rgba(51,51,51,.10);
+  --g-legenda: #333333;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--texto); font-family: var(--fonte); font-size: 14px; line-height: 1.45; }
+h1, h2, h3, h4, p { margin: 0; }
+button, select, input { font: inherit; color: inherit; }
+a { color: var(--info-txt); }
+[hidden] { display: none !important; }
+.mono { font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+:focus-visible { outline: 2px solid var(--info); outline-offset: 2px; }
+
+/* ---------- Topo ---------- */
+.topo {
+  min-height: var(--topo-h); padding: 8px 14px; display: flex; flex-wrap: wrap; gap: 8px 14px;
+  align-items: center; justify-content: space-between;
+  background: var(--painel); border-bottom: 1px solid var(--borda); position: sticky; top: 0; z-index: 1000;
+  padding-top: max(8px, env(safe-area-inset-top));
+  padding-left: max(14px, env(safe-area-inset-left));
+  padding-right: max(14px, env(safe-area-inset-right));
+}
+.marca { display: flex; align-items: center; gap: 10px; }
+.marca-icone { width: 38px; height: 38px; display: grid; place-items: center; font-size: 20px; border-radius: 10px; background: linear-gradient(135deg, #2E7D32, #4CAF50); }
+.marca h1 { font-size: 16px; font-weight: 700; letter-spacing: -.01em; }
+.marca p { font-size: 11.5px; color: var(--suave); }
+.topo-controles { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.segmentado { display: inline-flex; padding: 3px; background: var(--painel-2); border: 1px solid var(--borda); border-radius: 10px; }
+.seg { border: 0; background: transparent; padding: 6px 12px; border-radius: 7px; cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--suave); }
+.seg.ativo { background: var(--botao-apta); color: #fff; }
+#btnModoSim.ativo { background: var(--moderada); color: #1a1300; }
+
+/* ---------- Layout ---------- */
+.layout { display: flex; flex-direction: column; padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); padding-bottom: env(safe-area-inset-bottom); }
+.central { display: contents; }
+.mapa-wrap { order: 1; position: relative; height: 62vh; height: 62dvh; min-height: 340px; background: var(--mapa-fundo); }
+.painel { order: 2; padding: 12px; display: flex; flex-direction: column; gap: 12px; background: var(--bg); }
+.dock { order: 3; background: var(--painel); border-top: 1px solid var(--borda); }
+#mapa { position: absolute; inset: 0; }
+
+@media (min-width: 1024px) {
+  body { height: 100vh; height: 100dvh; overflow: hidden; }
+  .layout {
+    display: grid; grid-template-columns: 400px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto;
+    height: calc(100vh - var(--topo-h)); height: calc(100dvh - var(--topo-h)); min-height: 0;
+  }
+  .painel { grid-column: 1; grid-row: 1 / 3; overflow-y: auto; border-right: 1px solid var(--borda); }
+  .mapa-wrap { grid-column: 2; grid-row: 1; height: auto; min-height: 0; }
+  .dock { grid-column: 2; grid-row: 2; height: 300px; display: flex; flex-direction: column; }
+  .dock-corpo { flex: 1; min-height: 0; overflow: auto; }
+}
+
+/* ---------- Blocos do painel ---------- */
+.bloco { background: var(--painel); border: 1px solid var(--borda); border-radius: var(--raio); padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.bloco h2 { font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--texto); display: flex; align-items: center; gap: 8px; }
+.bloco summary { cursor: pointer; list-style: none; }
+.bloco summary::-webkit-details-marker { display: none; }
+.bloco summary::after { content: '▾'; float: right; color: var(--suave); }
+.bloco details[open] summary::after, details.bloco[open] > summary::after { content: '▴'; }
+details.bloco > summary { margin-bottom: 2px; }
+.num { width: 20px; height: 20px; border-radius: 50%; display: inline-grid; place-items: center; background: var(--num-bg); color: var(--num-txt); font-size: 11px; }
+label { font-size: 11.5px; color: var(--suave); }
+.campo {
+  width: 100%; padding: 8px 10px; border-radius: 9px; border: 1px solid var(--borda);
+  background: var(--painel-2); color: var(--texto); min-height: 38px;
+}
+.campo:focus { border-color: var(--info); }
+.campo-topo { width: auto; min-width: 190px; }
+.duas-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.nota-peq { font-size: 11.5px; color: var(--suave); }
+
+/* Ponto / métricas */
+.ponto-nome { font-size: 16px; font-weight: 700; }
+.ponto-sub { font-size: 12px; color: var(--suave); }
+.coord-form { display: grid; grid-template-columns: 1fr 1fr auto; gap: 6px; }
+.coord-form .campo { font-size: 12.5px; min-width: 0; }
+.metricas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.metrica { background: var(--painel-2); border: 1px solid var(--borda); border-left: 3px solid var(--info); border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; }
+.metrica span { font-size: 11px; color: var(--suave); }
+.metrica strong { font-size: 15px; font-variant-numeric: tabular-nums; }
+.metrica small { font-size: 10.5px; color: var(--suave); }
+.metrica[data-status="adequada"] { border-left-color: var(--apta); }
+.metrica[data-status="moderada"] { border-left-color: var(--moderada); }
+.metrica[data-status="inadequada"] { border-left-color: var(--inapta); }
+.fonte { font-size: 11.5px; padding: 6px 10px; border-radius: 8px; background: var(--info-bg); color: var(--info-txt); border: 1px solid var(--info-borda); }
+.fonte-sim { background: var(--aviso-bg); color: var(--aviso-txt); border-color: var(--aviso-borda); }
+.fonte-alerta { background: var(--erro-bg); color: var(--erro-txt); border-color: var(--erro-borda); }
+.aviso-dados { font-size: 12px; padding: 8px 10px; border-radius: 8px; background: var(--aviso-bg); border: 1px solid var(--aviso-borda); color: var(--aviso-txt); }
+
+/* Aptidão */
+.aptidao-topo { display: flex; align-items: center; gap: 10px; }
+.badge-classe { font-size: 20px; font-weight: 800; padding: 6px 16px; border-radius: 12px; letter-spacing: .04em; border: 1px solid transparent; background: var(--painel-2); }
+.classe-apta { background: var(--apta-fundo); color: var(--apta-txt); border-color: var(--apta-borda); }
+.classe-moderada { background: var(--moderada-fundo); color: var(--moderada-txt); border-color: var(--moderada-borda); }
+.classe-inapta { background: var(--inapta-fundo); color: var(--inapta-txt); border-color: var(--inapta-borda); }
+.indice { font-size: 12px; color: var(--suave); }
+.motivos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.motivos li { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; }
+.motivos small { display: block; color: var(--suave); font-size: 11px; }
+.motivos .ic { width: 18px; text-align: center; flex: none; }
+.st-adequada .ic, .st-adequada b { color: var(--apta-txt); }
+.st-moderada .ic, .st-moderada b { color: var(--moderada-txt); }
+.st-inadequada .ic, .st-inadequada b { color: var(--inapta-txt); }
+.motivos .st-adequada b { color: var(--texto); font-weight: 500; }
+.limitante { font-size: 12.5px; padding-top: 6px; border-top: 1px dashed var(--borda); color: var(--suave); }
+.limitante strong { color: var(--texto); }
+
+/* Sliders */
+.aviso-param { font-size: 11.5px; padding: 8px 10px; border-radius: 8px; background: var(--info-bg); border: 1px solid var(--info-borda); color: var(--info-txt); }
+.grupo-slider { padding: 8px 0; border-bottom: 1px solid var(--borda); }
+.grupo-topo { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 12.5px; font-weight: 600; }
+.grupo-topo output { font-size: 12px; color: var(--info-txt); }
+.grupo-topo output.editado { color: var(--moderada-txt); }
+.tag-crit { font-style: normal; font-size: 9.5px; text-transform: uppercase; letter-spacing: .05em; padding: 1px 6px; border-radius: 99px; background: var(--erro-bg); color: var(--inapta-txt); margin-left: 4px; }
+.duplo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 6px 0 2px; }
+input[type="range"] { width: 100%; accent-color: var(--acento); height: 24px; margin: 0; }
+.grupo-slider small { color: var(--suave); font-size: 11px; }
+
+/* Botões */
+.btn { border: 1px solid var(--borda); border-radius: 10px; padding: 9px 14px; font-weight: 600; font-size: 12.5px; cursor: pointer; min-height: 38px; }
+.btn-prim { background: var(--botao-apta); border-color: transparent; color: #fff; }
+.btn-sec { background: var(--painel-2); color: var(--texto); }
+@media (hover: hover) and (pointer: fine) { .btn:hover:not(:disabled) { filter: brightness(1.12); } }
+.btn:disabled { opacity: .55; cursor: progress; }
+.btn-bloco { margin-top: 8px; width: 100%; }
+.grade-botoes { display: flex; gap: 8px; flex-wrap: wrap; }
+.grade-botoes .btn-prim { flex: 1; }
+progress { width: 100%; height: 8px; accent-color: var(--acento); }
+.resumo-grade { font-size: 12.5px; color: var(--texto); min-height: 1em; }
+.rodape { font-size: 11px; color: var(--suave); padding: 4px 2px 14px; }
+.rodape .metodologia { margin-bottom: 8px; }
+
+/* ---------- Mapa: sobreposições ---------- */
+.chip-resultado { position: absolute; left: 10px; bottom: 26px; z-index: 500; padding: 6px 12px; border-radius: 99px; font-weight: 700; font-size: 12.5px; background: var(--overlay-bg); border: 1px solid; backdrop-filter: blur(4px); }
+.legenda { position: absolute; right: 10px; bottom: 26px; z-index: 500; background: var(--overlay-bg); border: 1px solid var(--overlay-borda); border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; color: var(--overlay-texto); }
+.legenda strong { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--overlay-suave); }
+.legenda span { display: flex; align-items: center; gap: 6px; }
+.legenda i { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+.btn-flutuante { position: absolute; top: 10px; right: 10px; z-index: 500; border: 1px solid var(--overlay-borda); background: var(--overlay-bg); color: var(--overlay-texto); border-radius: 10px; padding: 6px 10px; cursor: pointer; font-size: 12px; font-weight: 600; }
+.carregando { position: absolute; inset: 0; z-index: 600; display: flex; flex-direction: column; gap: 10px; align-items: center; justify-content: center; background: var(--carregando-bg); backdrop-filter: blur(2px); color: var(--carregando-txt); font-weight: 600; }
+.spinner { width: 42px; height: 42px; border-radius: 50%; border: 4px solid var(--spinner-trilho); border-top-color: var(--acento); animation: gira .8s linear infinite; }
+@keyframes gira { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2s; } .pin::after { animation: none; } }
+
+/* Marcador e popups Leaflet */
+.pin-wrap { background: none; border: 0; }
+.pin { position: relative; width: 22px; height: 22px; margin: 2px; border-radius: 50%; background: var(--pin, var(--info)); border: 3px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,.45); }
+.pin::after { content: ''; position: absolute; inset: -9px; border-radius: 50%; border: 2px solid var(--pin, var(--info)); opacity: .0; animation: pulso 2.2s ease-out infinite; }
+@keyframes pulso { 0% { transform: scale(.6); opacity: .8; } 100% { transform: scale(1.3); opacity: 0; } }
+.popup-aptidao .leaflet-popup-content-wrapper, .popup-rejeicao .leaflet-popup-content-wrapper { background: var(--overlay-bg); color: var(--overlay-texto); border-radius: 12px; border: 1px solid var(--overlay-borda); }
+.popup-aptidao .leaflet-popup-tip, .popup-rejeicao .leaflet-popup-tip { background: var(--overlay-bg); }
+.popup-rejeicao .leaflet-popup-content-wrapper { border-color: var(--inapta); }
+.leaflet-popup-content { margin: 10px 12px; font-family: var(--fonte); font-size: 12.5px; }
+.pp-topo { display: flex; justify-content: space-between; gap: 8px; align-items: center; margin-bottom: 4px; }
+.pp-classe { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; border: 1px solid; white-space: nowrap; }
+.pp-linha { color: var(--overlay-texto); }
+.pp-sub { color: var(--overlay-suave); font-size: 11.5px; margin-top: 3px; }
+.tt-grade { background: var(--overlay-bg); color: var(--overlay-texto); border: 1px solid var(--overlay-borda); border-radius: 8px; font-family: var(--fonte); font-size: 12px; }
+.tt-grade .tt-sub { color: var(--overlay-suave); font-size: 11px; }
+.leaflet-tooltip.tt-grade::before { display: none; }
+
+/* ---------- Dock: gráficos e relatório ---------- */
+.abas { display: flex; gap: 4px; padding: 8px 10px 0; border-bottom: 1px solid var(--borda); }
+.aba { border: 0; background: transparent; color: var(--suave); padding: 8px 14px; border-radius: 8px 8px 0 0; cursor: pointer; font-weight: 600; font-size: 12.5px; border-bottom: 2px solid transparent; }
+.aba.ativa { color: var(--texto); border-bottom-color: var(--acento); background: var(--painel-2); }
+.btn-recolher { margin-left: auto; align-self: center; width: 34px; height: 30px; display: grid; place-items: center; border: 1px solid var(--borda); background: var(--painel-2); color: var(--texto); border-radius: 8px; cursor: pointer; margin-bottom: 4px; }
+@media (hover: hover) and (pointer: fine) { .btn-recolher:hover { background: var(--hover); } }
+.btn-recolher svg { transition: transform .2s; }
+.dock.recolhido .btn-recolher svg { transform: rotate(180deg); }
+.dock.recolhido .dock-corpo { display: none !important; }
+.dock.recolhido .abas { border-bottom: 0; }
+@media (min-width: 1024px) { .dock.recolhido { height: auto; } }
+@media (max-width: 1023px) { .layout.dock-recolhido .mapa-wrap { height: 82vh; height: 82dvh; } }
+.graficos { display: grid; grid-template-columns: 1fr; gap: 10px; padding: 10px; }
+.cartao-grafico { margin: 0; background: var(--painel-2); border: 1px solid var(--borda); border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; min-height: 230px; min-width: 0; }
+.cartao-grafico figcaption { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+.cartao-grafico figcaption small { font-weight: 400; color: var(--suave); }
+.canvas-wrap { position: relative; flex: 1; min-height: 190px; }
+@media (min-width: 1024px) {
+  .graficos { grid-template-columns: 1fr 1fr; }
+  .cartao-grafico { min-height: 0; }
+  .canvas-wrap { min-height: 0; }
+}
+
+/* Relatório */
+.relatorio-corpo { padding: 10px 14px 16px; }
+.rel-acoes { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 8px; }
+.relatorio { max-width: 880px; display: flex; flex-direction: column; gap: 10px; font-size: 13px; }
+.relatorio .vazio { color: var(--suave); }
+.rel-titulo { font-size: 15px; letter-spacing: .08em; }
+.rel-aviso { background: var(--aviso-bg); border: 1px solid var(--aviso-borda); color: var(--aviso-txt); padding: 8px 10px; border-radius: 8px; }
+.rel-id { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 6px 14px; margin: 0; }
+.rel-id div { display: flex; flex-direction: column; }
+.rel-id dt { font-size: 11px; color: var(--suave); text-transform: uppercase; letter-spacing: .04em; }
+.rel-id dd { margin: 0; font-weight: 600; }
+.rel-classe { display: flex; align-items: baseline; gap: 12px; padding: 8px 14px; border-radius: 12px; border: 1px solid; }
+.rel-classe span { font-size: 12px; opacity: .85; }
+.rel-classe strong { font-size: 20px; letter-spacing: .05em; }
+.rel-classe small { margin-left: auto; opacity: .85; }
+.rel-colunas { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.relatorio h4 { font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--suave); margin-bottom: 4px; }
+.relatorio ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+.relatorio li { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px dotted var(--borda); padding: 2px 0; }
+.rel-lista li { justify-content: flex-start; }
+.rel-obs { color: var(--suave); font-size: 12px; margin-top: 4px; }
+.rel-limitante { padding: 8px 12px; border-radius: 8px; background: var(--painel-2); border: 1px solid var(--borda); }
+.relatorio section p + p { margin-top: 6px; }
+.rel-nota { font-size: 11.5px; color: var(--suave); border-top: 1px solid var(--borda); padding-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+
+/* ---------- Toast / erro ---------- */
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 2000; max-width: min(92vw, 560px); padding: 10px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,.45); background: var(--overlay-bg); border: 1px solid var(--overlay-borda); color: var(--overlay-texto); text-align: center; }
+.toast-erro { background: var(--toast-erro-bg); border-color: var(--toast-erro-borda); color: var(--toast-erro-txt); }
+.toast-alerta { background: var(--toast-aviso-bg); border-color: var(--toast-aviso-borda); color: var(--toast-aviso-txt); }
+.erro-fatal { background: #7f1d1d; color: #fff; padding: 12px 16px; font-weight: 600; text-align: center; }
+
+/* ---------- Impressão (relatório) ---------- */
+@media print {
+  body { background: #fff; color: #000; height: auto; overflow: visible; }
+  .topo, .painel, .mapa-wrap, .abas, .rel-acoes, .toast, #painelGraficos { display: none !important; }
+  .layout, .dock { display: block !important; height: auto !important; background: #fff; border: 0; }
+  #painelRelatorio { display: block !important; overflow: visible; color: #000; }
+  .relatorio, .rel-id dd, .relatorio li b, .rel-classe strong { color: #000 !important; }
+  .rel-classe, .rel-limitante, .rel-aviso { border-color: #999 !important; background: #fff !important; color: #000 !important; }
+}
+
+/* Sliders de faixa: rótulos visíveis (mínima/máxima) */
+.duplo .lado { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.duplo .lado label { font-size: 11px; color: var(--suave); }
+
+
+/* ---------- Tema: botão, mapa e controles do Leaflet ---------- */
+.btn-tema { width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid var(--borda); background: var(--painel-2); color: var(--texto); border-radius: 10px; cursor: pointer; }
+@media (hover: hover) and (pointer: fine) { .btn-tema:hover { background: var(--hover); } }
+.btn-tema svg { width: 18px; height: 18px; }
+:root:not([data-tema="claro"]) .ico-lua { display: none; }   /* no escuro mostra o sol (vai para o claro) */
+:root[data-tema="claro"] .ico-sol { display: none; }          /* no claro mostra a lua (vai para o escuro) */
+
+.leaflet-tile-pane { filter: var(--tile-filter); }
+.mascara-sp { fill: var(--mascara-cor); fill-opacity: var(--mascara-op); }
+/* Contorno = apenas o LIMITE territorial de SP (não é resultado de aptidão): neutro, para não ser lido como "Apta". */
+.contorno-sp { stroke: var(--contorno); fill: var(--contorno); fill-opacity: .05; }
+.leg-sd i { background: var(--sem-dados); }
+.leaflet-bar a, .leaflet-bar a:hover { background-color: var(--painel); color: var(--texto); border-bottom-color: var(--borda); }
+@media (hover: hover) and (pointer: fine) { .leaflet-bar a:hover { background-color: var(--hover); } }
+.leaflet-bar a.leaflet-disabled { background-color: var(--painel-2); color: var(--suave); }
+.leaflet-control-attribution { background: var(--overlay-bg) !important; color: var(--overlay-suave) !important; }
+.leaflet-control-attribution a { color: var(--info-txt) !important; }
+
+
+/* ---------- Toque (celular/tablet) ---------- */
+/* Realce nativo do toque removido; o feedback é o estado :active de cada controle. */
+button, select, summary, label, .leaflet-bar a {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;            /* sem espera de duplo toque; pan/zoom do mapa não é afetado */
+}
+/* Controles não devem ser selecionados por toque longo (texto comum continua selecionável). */
+button, summary, .leaflet-bar a { -webkit-user-select: none; user-select: none; }
+
+.btn:active:not(:disabled) { filter: brightness(.9); transform: scale(.98); }
+.seg:active:not(.ativo) { background: var(--hover); }
+.seg.ativo:active { filter: brightness(.9); }
+.aba:active { background: var(--hover); }
+.btn-recolher:active, .btn-tema:active { background: var(--hover); transform: scale(.96); }
+.btn-flutuante:active { filter: brightness(.9); transform: scale(.97); }
+details.bloco > summary:active { opacity: .7; }
+.leaflet-bar a:active { background-color: var(--hover); }
+
+/* Área de toque ≥44px sem mudar o desenho: pseudo-elemento transparente maior que o botão. */
+.seg, .aba, .btn-recolher, .btn-tema, .btn-flutuante { position: relative; }
+.btn-flutuante { position: absolute; }   /* mantém o posicionamento sobre o mapa */
+.seg::after, .aba::after, .btn-recolher::after, .btn-tema::after, .btn-flutuante::after {
+  content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  min-width: 44px; min-height: 44px; width: 100%; height: 100%;
+}
+
+@media (pointer: coarse) {
+  /* iOS dá zoom automático ao focar campos < 16px; 16px evita isso sem bloquear o zoom do usuário. */
+  .campo, .coord-form .campo, select.campo { font-size: 16px; min-height: 44px; }
+  .btn { min-height: 44px; }
+  details.bloco > summary { min-height: 44px; display: flex; align-items: center; justify-content: space-between; }
+  details.bloco > summary::after { float: none; }
+  input[type="range"] { height: 44px; }
+  .leaflet-touch .leaflet-bar a { width: 44px; height: 44px; line-height: 44px; }
+}
+
+
+/* =====================================================================
+   Orientação, resumo do resultado, hierarquia e fonte dos dados
+   ===================================================================== */
+
+/* Pilha de avisos no topo do mapa: entre o zoom (esquerda) e o "Ver SP" (direita). Nada se sobrepõe. */
+.mapa-topo { position: absolute; z-index: 500; top: 10px; left: 64px; right: 92px; display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; }
+.selo-sp { max-width: 100%; background: var(--overlay-bg); color: var(--overlay-texto); border: 1px solid var(--overlay-borda); border-radius: 14px; padding: 5px 12px; text-align: center; font-size: 11.5px; line-height: 1.3; }
+.selo-cta { display: block; font-weight: 700; }
+.selo-sub { display: block; color: var(--overlay-suave); font-size: 11px; }
+.so-clique { display: inline; } .so-toque { display: none; }
+@media (pointer: coarse) { .so-clique { display: none; } .so-toque { display: inline; } }
+:root:not([data-exemplo="1"]) .selo-cta { display: none; }       /* depois da 1ª escolha do usuário, fica só o aviso de SP */
+.selo-fonte { max-width: 100%; border-radius: 14px; padding: 5px 12px; text-align: center; font-size: 11.5px; font-weight: 700; line-height: 1.3; background: var(--aviso-bg); border: 1px solid var(--aviso-borda); color: var(--aviso-txt); }
+.selo-fonte-alerta { background: var(--erro-bg); border-color: var(--erro-borda); color: var(--erro-txt); }
+
+/* "Exemplo" só enquanto o ponto inicial estiver selecionado */
+:root:not([data-exemplo="1"]) .so-exemplo { display: none; }
+.tag-exemplo { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; padding: 1px 7px; border-radius: 99px; background: var(--info-bg); color: var(--info-txt); border: 1px solid var(--info-borda); vertical-align: middle; margin-left: 6px; }
+.tag-avancado, .tag-compl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; padding: 1px 7px; border-radius: 99px; background: var(--painel-2); color: var(--suave); border: 1px solid var(--borda); }
+.tag-compl { background: var(--info-bg); color: var(--info-txt); border-color: var(--info-borda); }
+
+/* Resumo rápido (celular): resultado junto ao mapa. No desktop o painel lateral já fica ao lado do mapa. */
+.resumo-rapido { display: none; order: 1; background: var(--painel); border-bottom: 1px solid var(--borda); padding: 10px 14px 12px; flex-direction: column; gap: 4px; }
+.rr-linha { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.rr-classe { font-size: 17px; font-weight: 800; letter-spacing: .04em; padding: 3px 12px; border-radius: 10px; border: 1px solid transparent; }
+.rr-cultura { font-size: 13px; font-weight: 600; }
+.rr-local { font-size: 12.5px; color: var(--suave); }
+.rr-dica { font-size: 12px; color: var(--info-txt); }
+.rr-limitante { font-size: 12.5px; color: var(--suave); }
+.rr-limitante strong { color: var(--texto); }
+.rr-fonte { font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 8px; background: var(--aviso-bg); border: 1px solid var(--aviso-borda); color: var(--aviso-txt); }
+.rr-acoes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
+@media (max-width: 1023px) {
+  .resumo-rapido:not([hidden]) { display: flex; }
+  .chip-resultado { display: none; }                                 /* o resumo abaixo do mapa substitui o chip: sem duplicar nem cobrir o mapa */
+  .mapa-wrap { height: 54vh; height: 54dvh; min-height: 300px; }
+  #blocoAptidao, .dock { scroll-margin-top: 120px; }
+}
+
+/* Hierarquia: o resultado se destaca; configuração avançada e análise regional são secundárias */
+.bloco-aptidao { border-left: 4px solid var(--acento); }
+.bloco-aptidao .badge-classe { font-size: 22px; }
+.bloco-avancado { background: transparent; border-style: dashed; }
+.bloco-avancado > summary h2 { color: var(--suave); }
+.bloco-regional > summary h2 { flex-wrap: wrap; }
+.nota-regional { color: var(--texto); }
+
+/* Relatório: resumo em linguagem simples primeiro; técnico em seção secundária */
+.rel-resumo { padding: 10px 12px; border-radius: 10px; background: var(--painel-2); border: 1px solid var(--borda); }
+.rel-resumo p { font-size: 13.5px; line-height: 1.5; }
+.rel-resumo .rel-como { font-size: 12px; color: var(--suave); }
+.rel-tecnico { border: 1px solid var(--borda); border-radius: 10px; padding: 0 12px; }
+.rel-tecnico > summary { cursor: pointer; padding: 10px 0; font-weight: 600; font-size: 12.5px; list-style: none; }
+.rel-tecnico > summary::-webkit-details-marker { display: none; }
+.rel-tecnico > summary::before { content: '▸ '; color: var(--suave); }
+.rel-tecnico[open] > summary::before { content: '▾ '; }
+.rel-tecnico[open] { padding-bottom: 12px; display: flex; flex-direction: column; gap: 10px; }
+
+/* Cabeçalho compacto no celular: título + tema na 1ª linha; fonte dos dados + polos na 2ª */
+@media (max-width: 639px) {
+  .topo { gap: 6px 10px; padding-bottom: 8px; }
+  .topo-controles { display: contents; }
+  .marca { order: 1; flex: 1 1 calc(100% - 60px); min-width: 0; gap: 8px; }
+  .marca p { display: none; }
+  .marca-icone { width: 32px; height: 32px; font-size: 17px; }
+  .marca h1 { font-size: 15px; }
+  .btn-tema { order: 2; flex: none; }
+  .segmentado { order: 3; flex: none; }
+  .seg { padding: 6px 9px; }
+  #selPolo { order: 4; flex: 1 1 110px; min-width: 0; }
+}
+/* Limitações científicas do modelo */
+.nota-cientifica { font-size: 11.5px; color: var(--suave); padding-top: 4px; }
+.limites-modelo { font-size: 12px; color: var(--suave); }
+.limites-modelo > summary { cursor: pointer; font-weight: 600; color: var(--texto); padding: 6px 0; min-height: 32px; }
+.limites-modelo ul { margin: 4px 0 6px; padding-left: 18px; display: flex; flex-direction: column; gap: 2px; }
+.limites-modelo p { margin-top: 4px; }
+.rr-aviso { font-size: 11px; color: var(--suave); }
+
+/* Dica do gesto no mapa (aparece só no toque, ao arrastar com 1 dedo) */
+.dica-gesto { position: absolute; z-index: 550; left: 50%; top: 50%; transform: translate(-50%, -50%); max-width: 80%; text-align: center; padding: 10px 16px; border-radius: 12px; font-size: 13px; font-weight: 700; background: var(--overlay-bg); color: var(--overlay-texto); border: 1px solid var(--overlay-borda); box-shadow: 0 6px 20px rgba(0,0,0,.25); pointer-events: none; }
+
+/* Toque: mais respiro entre a resolução da grade e os botões da análise regional */
+@media (pointer: coarse) {
+  /* <details>: o "gap" do flex não alcança o conteúdo interno, por isso o respiro vem de margens. */
+  .bloco-regional label[for="selResolucao"] { display: block; margin-top: 8px; }
+  .bloco-regional #selResolucao { margin: 4px 0 16px; }
+  .grade-botoes { gap: 12px; }
+  .grade-botoes .btn { min-height: 48px; }
+}
+@media (max-width: 359px) {
+  .seg { padding: 6px 6px; font-size: 12px; }
+  #selPolo { flex-basis: 96px; }
+}
+@media print { .resumo-rapido, .mapa-topo { display: none !important; } }
