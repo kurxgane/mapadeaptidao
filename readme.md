@@ -71,7 +71,6 @@ A descrição completa está em [metodologia.md](metodologia.md).
 - **Chart.js** — gráficos.
 - **OpenStreetMap** — mapa-base.
 - **NASA POWER API** — dados meteorológicos.
-- **Netlify** — publicação da aplicação.
 
 O projeto utiliza JavaScript sem framework e não exige etapa de build.
 
@@ -131,19 +130,6 @@ node tests/run.js
 ```
 
 A suíte verifica partes do motor agronômico, cálculos, interpretação de dados da NASA POWER e tratamento de requisições. São utilizados dados sintéticos; os testes não consultam a API real e não cobrem todos os textos e elementos da interface.
-
-## Publicação no Netlify
-
-A aplicação pode ser publicada como um site estático no Netlify:
-
-1. Acesse o painel do [Netlify](https://www.netlify.com/).
-2. Escolha a opção de adicionar um novo site por deploy manual.
-3. Envie a pasta do projeto que contém `index.html` e `netlify.toml`.
-4. Aguarde a conclusão do deploy e abra a URL gerada.
-
-Também é possível publicar uma versão de arquivo único: utilize `mapa-aptidao-sp-arquivo-unico.html` renomeado para `index.html`, junto com o arquivo `netlify.toml`.
-
-O arquivo `netlify.toml` contém configurações de cabeçalhos de segurança e política de segurança de conteúdo (CSP). Ao alterar a estrutura ou as dependências externas, confira se essas regras continuam compatíveis.
 
 ## Documentação
 
