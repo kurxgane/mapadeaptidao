@@ -41,7 +41,7 @@ A seguir, um exemplo de consulta realizada para **laranja (*Citrus sinensis*) em
 
 O ponto selecionado em Ourinhos é apresentado no mapa interativo.
 
-![Mapa com ponto selecionado em Ourinhos, SP](docs/screenshots/01-mapa-ourinhos.png.jpg)
+![Mapa com ponto selecionado em Ourinhos, SP](docs/screenshots/04-mapa-ourinhos.png.jpg)
 
 ### 2. Resultado da análise
 
