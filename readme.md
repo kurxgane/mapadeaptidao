@@ -33,6 +33,35 @@ O resultado é apresentado em três classes: **Apta**, **Moderada** e **Inapta**
 
 > **Importante:** as classificações são estimativas de um modelo simplificado. Não representam laudo oficial de aptidão agrícola, recomendação de plantio ou o Zoneamento Agrícola de Risco Climático (ZARC). Consulte [Metodologia, fontes e limitações](metodologia.md) para conhecer os critérios e as restrições do modelo.
 
+## Exemplo de análise
+
+A seguir, um exemplo de consulta realizada para **laranja (*Citrus sinensis*) em Ourinhos, SP**, considerando o período de **safrinha/inverno (abril a setembro)**.
+
+### 1. Localização no mapa
+
+O ponto selecionado em Ourinhos é apresentado no mapa interativo.
+
+![Mapa com ponto selecionado em Ourinhos, SP](docs/screenshots/01-mapa-ourinhos.png.jpg)
+
+### 2. Resultado da análise
+
+<text></text>
+A consulta apresentou classificação **MODERADA**, com pontuação de **83/100**. O principal fator limitante identificado foi o déficit hídrico.
+
+![Resultado da análise de aptidão para laranja em Ourinhos](docs/screenshots/02-resultado-laranja.png.jpg)
+
+### 3. Dados climáticos
+
+A análise utilizou dados da **NASA POWER**, referentes ao ano de 2025, em uma grade de resolução de 0,5°, com centro de célula em aproximadamente **-23,0°, -50,0°**.
+
+A precipitação média indicada foi de **37 mm/mês**, abaixo da faixa de referência de **75 a 150 mm/mês** adotada pelo modelo para a cultura.
+
+![Dados climáticos utilizados na análise](docs/screenshots/03-dados-climaticos.png.jpg)
+
+**Como interpretar:** o resultado indica compatibilidade climática parcial segundo os critérios simplificados da aplicação. Nenhuma variável crítica ultrapassou os limites de tolerância definidos, mas a disponibilidade de água aparece como o principal ponto de atenção.
+
+> **Limitações deste exemplo:** trata-se de uma análise demonstrativa, não de um relatório técnico ou recomendação de plantio. O modelo utiliza tolerâncias e pesos simplificados, com base técnica parcial e sem validação científica. Não considera fatores como solo, relevo, cultivar, fases da cultura, distribuição da chuva ao longo do ciclo ou eventos extremos. O balanço hídrico também é simplificado. Além disso, os dados da NASA POWER representam uma célula de grade com escala espacial aproximada de dezenas de quilômetros — não as condições exatas de uma propriedade rural. A classificação não é oficial e não substitui o ZARC.
+
 ## Recursos
 
 - **Mapa interativo:** exploração de localidades dentro do estado de São Paulo.
@@ -80,6 +109,11 @@ O projeto utiliza JavaScript sem framework e não exige etapa de build.
 mapadeaptidao/
 ├── css/
 │   └── style.css
+├── docs/
+│   └── screenshots/
+│       ├── 01-mapa-ourinhos.png.jpg
+│       ├── 02-resultado-laranja.png.jpg
+│       └── 03-dados-climaticos.png.jpg
 ├── js/
 │   ├── agronomia.js
 │   ├── app.js
