@@ -164,6 +164,15 @@ node tests/run.js
 
 A suíte verifica partes do motor agronômico, cálculos, interpretação de dados da NASA POWER e tratamento de requisições. São utilizados dados sintéticos; os testes não consultam a API real e não cobrem todos os textos e elementos da interface.
 
+## Equipe do Projeto
+
+O projeto foi desenvolvido em equipe como parte do Projeto Integrador da Fatec Bebedouro.
+
+- Guilherme
+- Gustavo
+- Lucas
+- Silvio
+
 ## Documentação
 
 - [Metodologia, fontes e limitações](metodologia.md) — detalhamento dos dados, critérios, cálculos, referências e limitações científicas.
