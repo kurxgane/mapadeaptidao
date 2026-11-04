@@ -45,7 +45,6 @@ O ponto selecionado em Ourinhos é apresentado no mapa interativo.
 
 ### 2. Resultado da análise
 
-<text></text>
 A consulta apresentou classificação **MODERADA**, com pontuação de **83/100**. O principal fator limitante identificado foi o déficit hídrico.
 
 ![Resultado da análise de aptidão para laranja em Ourinhos](docs/screenshots/02-resultado-laranja.png.jpg)
